@@ -1,0 +1,383 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jazz Ge8 PACITAN</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+  /* Print styles - rapi saat dicetak ke kertas/PDF */
+  @media print {
+    body { background: white !important; }
+    .no-print { display: none !important; }
+    .print-area { box-shadow: none !important; border: none !important; padding: 0 !important; }
+    table { font-size: 12px; }
+    .print-header { display: block !important; }
+  }
+  .print-header { display: none; }
+  /* Smooth animations */
+  .fade-in { animation: fadeIn 0.3s ease-in; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px);} to {opacity:1; transform: translateY(0);} }
+  /* Input number tanpa spinner */
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number] { -moz-appearance: textfield; }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+  <!-- HEADER -->
+  <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M3 12h18M3 17h12" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Kas Sederhana</h1>
+          <p class="text-xs sm:text-sm text-slate-500">Jazz GE8 Goes To Pacitan By ARGA</p>
+        </div>
+      </div>
+      <div class="hidden sm:flex items-center gap-2 text-sm text-slate-500">
+        <span class="w-2 h-2 rounded-full bg-green-500"></span>
+        Tersimpan otomatis di perangkat Anda
+      </div>
+    </div>
+  </header>
+
+  <!-- PRINT HEADER (hanya muncul ketika print) -->
+  <div class="print-header px-4 py-4 border-b border-slate-300">
+    <h1 class="text-2xl font-bold">Laporan Kas</h1>
+    <p id="printDate" class="text-sm text-slate-600"></p>
+  </div>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+
+    <!-- DASHBOARD CARDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-slate-500">Total Pemasukan</span>
+          <span class="w-9 h-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12l7 7 7-7"/></svg>
+          </span>
+        </div>
+        <p data-testid="total-pemasukan" class="text-2xl sm:text-3xl font-extrabold text-green-600">Rp 0</p>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-slate-500">Total Pengeluaran</span>
+          <span class="w-9 h-9 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M19 12l-7-7-7 7"/></svg>
+          </span>
+        </div>
+        <p data-testid="total-pengeluaran" class="text-2xl sm:text-3xl font-extrabold text-red-600">Rp 0</p>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-slate-500">Saldo Akhir</span>
+          <span class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18v10H3zM3 11h18"/></svg>
+          </span>
+        </div>
+        <p data-testid="saldo-akhir" class="text-2xl sm:text-3xl font-extrabold text-blue-600">Rp 0</p>
+      </div>
+    </section>
+
+    <!-- FORM INPUT -->
+    <section class="no-print bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm mb-8">
+      <h2 class="text-lg font-bold text-slate-900 mb-1">Tambah Transaksi Baru</h2>
+      <p class="text-sm text-slate-500 mb-5">Isi nominal dan keterangan singkat agar mudah dilacak nanti.</p>
+
+      <form id="formTransaksi" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jumlah Uang (Rp)</label>
+          <input data-testid="input-nominal" id="inputNominal" type="text" inputmode="numeric" placeholder="Contoh: 50000" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition text-base" required />
+          <p class="text-xs text-slate-400 mt-1">Tidak perlu mengetik titik atau koma.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1.5">Keterangan</label>
+          <input data-testid="input-keterangan" id="inputKeterangan" type="text" maxlength="80" placeholder="Contoh: Penjualan kue, Beli bahan baku" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition text-base" required />
+          <p class="text-xs text-slate-400 mt-1">Maks. 80 karakter.</p>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-semibold text-slate-700 mb-2">Jenis Transaksi</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="cursor-pointer">
+              <input data-testid="radio-pemasukan" type="radio" name="jenis" value="pemasukan" class="peer sr-only" checked />
+              <div class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 text-slate-600 font-semibold transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12l7 7 7-7"/></svg>
+                Pemasukan
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input data-testid="radio-pengeluaran" type="radio" name="jenis" value="pengeluaran" class="peer sr-only" />
+              <div class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 peer-checked:border-red-500 peer-checked:bg-red-50 peer-checked:text-red-700 text-slate-600 font-semibold transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M19 12l-7-7-7 7"/></svg>
+                Pengeluaran
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="md:col-span-2">
+          <button data-testid="btn-simpan" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-base py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Simpan Transaksi
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- RIWAYAT & LAPORAN -->
+    <section class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm print-area">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Riwayat Transaksi</h2>
+          <p class="text-sm text-slate-500">Daftar pemasukan dan pengeluaran terbaru.</p>
+        </div>
+        <div class="no-print flex flex-wrap items-center gap-2">
+          <select data-testid="filter-jenis" id="filterJenis" class="px-3 py-2 rounded-lg border border-slate-300 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+            <option value="semua">Semua Transaksi</option>
+            <option value="pemasukan">Pemasukan Saja</option>
+            <option value="pengeluaran">Pengeluaran Saja</option>
+          </select>
+          <button data-testid="btn-cetak" id="btnCetak" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold flex items-center gap-1.5 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
+            Cetak
+          </button>
+          <button data-testid="btn-reset" id="btnReset" class="px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-sm font-semibold flex items-center gap-1.5 transition border border-red-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-slate-500 border-b border-slate-200">
+              <th class="py-3 px-3 font-semibold">Tanggal & Waktu</th>
+              <th class="py-3 px-3 font-semibold">Keterangan</th>
+              <th class="py-3 px-3 font-semibold">Jenis</th>
+              <th class="py-3 px-3 font-semibold text-right">Nominal</th>
+              <th class="py-3 px-3 font-semibold text-center no-print">Aksi</th>
+            </tr>
+          </thead>
+          <tbody data-testid="table-body" id="tabelTransaksi"></tbody>
+        </table>
+      </div>
+
+      <!-- Mobile List -->
+      <div data-testid="list-mobile" id="listMobile" class="md:hidden space-y-3"></div>
+
+      <!-- Empty state -->
+      <div data-testid="empty-state" id="emptyState" class="hidden text-center py-12">
+        <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/></svg>
+        </div>
+        <p class="text-slate-500 font-medium">Belum ada transaksi.</p>
+        <p class="text-sm text-slate-400">Tambahkan pemasukan atau pengeluaran pertama Anda di atas.</p>
+      </div>
+    </section>
+
+    <footer class="no-print text-center text-xs text-slate-400 mt-8 pb-4">
+      Aplikasi ini di buat untuk branding dan portofolio dan bisa di kembangkan bersama founder byARGA.
+    </footer>
+  </main>
+
+  <!-- MODAL KONFIRMASI RESET -->
+  <div data-testid="modal-konfirmasi" id="modalKonfirmasi" class="hidden fixed inset-0 z-30 bg-black/50 items-center justify-center px-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl fade-in">
+      <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 4h.01M4.93 19h14.14a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.19 16a2 2 0 001.74 3z"/></svg>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 mb-1">Hapus Semua Data?</h3>
+      <p class="text-sm text-slate-600 mb-5">Semua riwayat transaksi akan dihapus permanen dan tidak bisa dikembalikan.</p>
+      <div class="flex gap-2">
+        <button data-testid="btn-batal-reset" id="btnBatalReset" class="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition">Batal</button>
+        <button data-testid="btn-konfirmasi-reset" id="btnKonfirmasiReset" class="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold transition">Ya, Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div data-testid="toast" id="toast" class="fixed bottom-6 right-6 z-40 hidden bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-xl"></div>
+
+<script>
+  const STORAGE_KEY = 'kas_sederhana_transaksi_v1';
+  let transaksi = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+  const $ = (sel) => document.querySelector(sel);
+  const formatRupiah = (n) => 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
+  const formatTanggal = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) +
+           ', ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const showToast = (msg, isError = false) => {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.className = `fixed bottom-6 right-6 z-40 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-xl fade-in ${isError ? 'bg-red-600' : 'bg-slate-900'}`;
+    t.classList.remove('hidden');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => t.classList.add('hidden'), 2200);
+  };
+
+  const simpan = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(transaksi));
+
+  const hitungRingkasan = () => {
+    const pemasukan = transaksi.filter(t => t.jenis === 'pemasukan').reduce((s,t) => s + t.nominal, 0);
+    const pengeluaran = transaksi.filter(t => t.jenis === 'pengeluaran').reduce((s,t) => s + t.nominal, 0);
+    $('[data-testid="total-pemasukan"]').textContent = formatRupiah(pemasukan);
+    $('[data-testid="total-pengeluaran"]').textContent = formatRupiah(pengeluaran);
+    const saldo = pemasukan - pengeluaran;
+    const saldoEl = $('[data-testid="saldo-akhir"]');
+    saldoEl.textContent = formatRupiah(saldo);
+    saldoEl.className = `text-2xl sm:text-3xl font-extrabold ${saldo < 0 ? 'text-red-600' : 'text-blue-600'}`;
+  };
+
+  const render = () => {
+    const filter = $('#filterJenis').value;
+    const data = transaksi
+      .filter(t => filter === 'semua' || t.jenis === filter)
+      .sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+    const tbody = $('#tabelTransaksi');
+    const mobile = $('#listMobile');
+    const empty = $('#emptyState');
+
+    tbody.innerHTML = '';
+    mobile.innerHTML = '';
+
+    if (data.length === 0) {
+      empty.classList.remove('hidden');
+    } else {
+      empty.classList.add('hidden');
+      data.forEach(t => {
+        const isIn = t.jenis === 'pemasukan';
+        const sign = isIn ? '+' : '-';
+        const color = isIn ? 'text-green-600' : 'text-red-600';
+        const badge = isIn
+          ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">Pemasukan</span>'
+          : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold">Pengeluaran</span>';
+
+        // Desktop row
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-100 hover:bg-slate-50 transition';
+        tr.innerHTML = `
+          <td class="py-3 px-3 text-slate-600 whitespace-nowrap">${formatTanggal(t.tanggal)}</td>
+          <td class="py-3 px-3 text-slate-800 font-medium">${escapeHtml(t.keterangan)}</td>
+          <td class="py-3 px-3">${badge}</td>
+          <td class="py-3 px-3 text-right font-bold ${color}">${sign} ${formatRupiah(t.nominal)}</td>
+          <td class="py-3 px-3 text-center no-print">
+            <button data-testid="btn-hapus-${t.id}" data-id="${t.id}" class="btn-hapus inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition" title="Hapus transaksi">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+            </button>
+          </td>`;
+        tbody.appendChild(tr);
+
+        // Mobile card
+        const card = document.createElement('div');
+        card.className = 'border border-slate-200 rounded-xl p-3.5 flex items-start justify-between gap-3 fade-in';
+        card.innerHTML = `
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">${badge}</div>
+            <p class="font-semibold text-slate-800 truncate">${escapeHtml(t.keterangan)}</p>
+            <p class="text-xs text-slate-500 mt-0.5">${formatTanggal(t.tanggal)}</p>
+            <p class="text-base font-bold ${color} mt-1.5">${sign} ${formatRupiah(t.nominal)}</p>
+          </div>
+          <button data-testid="btn-hapus-mobile-${t.id}" data-id="${t.id}" class="btn-hapus shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition no-print">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          </button>`;
+        mobile.appendChild(card);
+      });
+    }
+
+    hitungRingkasan();
+  };
+
+  const escapeHtml = (s) => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // FORM SUBMIT
+  $('#formTransaksi').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nominalRaw = $('#inputNominal').value.replace(/[^\d]/g, '');
+    const nominal = parseInt(nominalRaw, 10);
+    const keterangan = $('#inputKeterangan').value.trim();
+    const jenis = document.querySelector('input[name="jenis"]:checked').value;
+
+    if (!nominal || nominal <= 0) { showToast('Nominal harus lebih dari 0', true); return; }
+    if (!keterangan) { showToast('Keterangan wajib diisi', true); return; }
+
+    transaksi.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      nominal, keterangan, jenis,
+      tanggal: new Date().toISOString()
+    });
+    simpan();
+    render();
+    e.target.reset();
+    document.querySelector('input[name="jenis"][value="pemasukan"]').checked = true;
+    showToast('Transaksi berhasil disimpan');
+  });
+
+  // Format nominal saat ketik (tampil ribuan tapi simpan angka asli)
+  $('#inputNominal').addEventListener('input', (e) => {
+    const raw = e.target.value.replace(/[^\d]/g, '');
+    e.target.value = raw ? Number(raw).toLocaleString('id-ID') : '';
+  });
+
+  // HAPUS PER ITEM (event delegation)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-hapus');
+    if (btn) {
+      const id = btn.dataset.id;
+      if (confirm('Hapus transaksi ini?')) {
+        transaksi = transaksi.filter(t => t.id !== id);
+        simpan();
+        render();
+        showToast('Transaksi dihapus');
+      }
+    }
+  });
+
+  // FILTER
+  $('#filterJenis').addEventListener('change', render);
+
+  // CETAK
+  $('#btnCetak').addEventListener('click', () => {
+    $('#printDate').textContent = 'Dicetak: ' + new Date().toLocaleString('id-ID');
+    window.print();
+  });
+
+  // RESET ALL
+  const modal = $('#modalKonfirmasi');
+  $('#btnReset').addEventListener('click', () => modal.classList.replace('hidden', 'flex'));
+  $('#btnBatalReset').addEventListener('click', () => modal.classList.replace('flex', 'hidden'));
+  $('#btnKonfirmasiReset').addEventListener('click', () => {
+    transaksi = [];
+    simpan();
+    render();
+    modal.classList.replace('flex', 'hidden');
+    showToast('Semua data berhasil dihapus');
+  });
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.replace('flex','hidden'); });
+
+  // INIT
+  render();
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"7f7b0fd8732c4326aae4b9d58d5c514a","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
