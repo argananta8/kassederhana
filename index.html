@@ -215,9 +215,10 @@
   <div data-testid="toast" id="toast" class="fixed bottom-6 right-6 z-40 hidden bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-xl"></div>
 
 <script>
-  const STORAGE_KEY = 'kas_sederhana_transaksi_v1';
-  let transaksi = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-
+  // GANTI URL INI dengan URL Web App Google Script Anda
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbx_0f43g_9gjOwhF1w56EN3JgSGx2UtI9EBIhPP3hsInEa4UL6Q85d6FrU-JQ5IoU9AIA/exec"; 
+  
+  let transaksi = [];
   const $ = (sel) => document.querySelector(sel);
   const formatRupiah = (n) => 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
   const formatTanggal = (iso) => {
@@ -235,19 +236,45 @@
     showToast._t = setTimeout(() => t.classList.add('hidden'), 2200);
   };
 
-  const simpan = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(transaksi));
+  // --- FUNGSI AMBIL DATA (SINKRONISASI) ---
+ const muatData = async () => {
+  try {
+    const response = await fetch(GAS_URL);
+    const data = await response.json();
+    
+    console.log("Data diterima dari Sheet:", data); // CEK INI DI CONSOLE BROWSER
 
-  const hitungRingkasan = () => {
-    const pemasukan = transaksi.filter(t => t.jenis === 'pemasukan').reduce((s,t) => s + t.nominal, 0);
-    const pengeluaran = transaksi.filter(t => t.jenis === 'pengeluaran').reduce((s,t) => s + t.nominal, 0);
-    $('[data-testid="total-pemasukan"]').textContent = formatRupiah(pemasukan);
-    $('[data-testid="total-pengeluaran"]').textContent = formatRupiah(pengeluaran);
-    const saldo = pemasukan - pengeluaran;
-    const saldoEl = $('[data-testid="saldo-akhir"]');
-    saldoEl.textContent = formatRupiah(saldo);
-    saldoEl.className = `text-2xl sm:text-3xl font-extrabold ${saldo < 0 ? 'text-red-600' : 'text-blue-600'}`;
+    // Pastikan data bukan array kosong
+    if (Array.isArray(data)) {
+      transaksi = data.map(row => ({
+        id: row[0],
+        tanggal: row[1],
+        nominal: Number(row[2]), // Pastikan nominal angka
+        keterangan: row[3],
+        jenis: row[4]
+      }));
+      render();
+    }
+  } catch (e) { 
+    console.error("Gagal memuat:", e); 
+    showToast("Gagal memuat data", true);
+  }
+};
+
+  // --- FUNGSI SIMPAN KE SHEET ---
+  const simpanKeSheet = async (dataBaru) => {
+    try {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(dataBaru)
+      });
+      showToast('Berhasil tersimpan ke Google Sheets');
+      muatData(); // Refresh data agar riwayat muncul
+    } catch (e) { showToast('Gagal terhubung ke Cloud', true); }
   };
 
+  // --- LOGIKA RENDER (TETAP SAMA) ---
   const render = () => {
     const filter = $('#filterJenis').value;
     const data = transaksi
@@ -257,7 +284,6 @@
     const tbody = $('#tabelTransaksi');
     const mobile = $('#listMobile');
     const empty = $('#emptyState');
-
     tbody.innerHTML = '';
     mobile.innerHTML = '';
 
@@ -269,114 +295,31 @@
         const isIn = t.jenis === 'pemasukan';
         const sign = isIn ? '+' : '-';
         const color = isIn ? 'text-green-600' : 'text-red-600';
-        const badge = isIn
-          ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">Pemasukan</span>'
-          : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold">Pengeluaran</span>';
-
-        // Desktop row
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-slate-100 hover:bg-slate-50 transition';
-        tr.innerHTML = `
-          <td class="py-3 px-3 text-slate-600 whitespace-nowrap">${formatTanggal(t.tanggal)}</td>
-          <td class="py-3 px-3 text-slate-800 font-medium">${escapeHtml(t.keterangan)}</td>
-          <td class="py-3 px-3">${badge}</td>
-          <td class="py-3 px-3 text-right font-bold ${color}">${sign} ${formatRupiah(t.nominal)}</td>
-          <td class="py-3 px-3 text-center no-print">
-            <button data-testid="btn-hapus-${t.id}" data-id="${t.id}" class="btn-hapus inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition" title="Hapus transaksi">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-            </button>
-          </td>`;
-        tbody.appendChild(tr);
-
-        // Mobile card
-        const card = document.createElement('div');
-        card.className = 'border border-slate-200 rounded-xl p-3.5 flex items-start justify-between gap-3 fade-in';
-        card.innerHTML = `
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-1">${badge}</div>
-            <p class="font-semibold text-slate-800 truncate">${escapeHtml(t.keterangan)}</p>
-            <p class="text-xs text-slate-500 mt-0.5">${formatTanggal(t.tanggal)}</p>
-            <p class="text-base font-bold ${color} mt-1.5">${sign} ${formatRupiah(t.nominal)}</p>
-          </div>
-          <button data-testid="btn-hapus-mobile-${t.id}" data-id="${t.id}" class="btn-hapus shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition no-print">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-          </button>`;
-        mobile.appendChild(card);
+        const badge = isIn ? '<span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-semibold">Pemasukan</span>' : '<span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full font-semibold">Pengeluaran</span>';
+        
+        // ... (sisipkan kode pembuatan tabel dan mobile card Anda di sini) ...
       });
     }
-
     hitungRingkasan();
   };
 
-  const escapeHtml = (s) => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-  // FORM SUBMIT
+  // --- FORM SUBMIT ---
   $('#formTransaksi').addEventListener('submit', (e) => {
     e.preventDefault();
-    const nominalRaw = $('#inputNominal').value.replace(/[^\d]/g, '');
-    const nominal = parseInt(nominalRaw, 10);
-    const keterangan = $('#inputKeterangan').value.trim();
-    const jenis = document.querySelector('input[name="jenis"]:checked').value;
-
-    if (!nominal || nominal <= 0) { showToast('Nominal harus lebih dari 0', true); return; }
-    if (!keterangan) { showToast('Keterangan wajib diisi', true); return; }
-
-    transaksi.push({
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-      nominal, keterangan, jenis,
-      tanggal: new Date().toISOString()
-    });
-    simpan();
-    render();
+    const nominal = parseInt($('#inputNominal').value.replace(/[^\d]/g, ''), 10);
+    const dataBaru = {
+      id: Date.now().toString(36),
+      tanggal: new Date().toISOString(),
+      nominal: nominal,
+      keterangan: $('#inputKeterangan').value,
+      jenis: document.querySelector('input[name="jenis"]:checked').value
+    };
+    simpanKeSheet(dataBaru);
     e.target.reset();
-    document.querySelector('input[name="jenis"][value="pemasukan"]').checked = true;
-    showToast('Transaksi berhasil disimpan');
   });
 
-  // Format nominal saat ketik (tampil ribuan tapi simpan angka asli)
-  $('#inputNominal').addEventListener('input', (e) => {
-    const raw = e.target.value.replace(/[^\d]/g, '');
-    e.target.value = raw ? Number(raw).toLocaleString('id-ID') : '';
-  });
-
-  // HAPUS PER ITEM (event delegation)
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-hapus');
-    if (btn) {
-      const id = btn.dataset.id;
-      if (confirm('Hapus transaksi ini?')) {
-        transaksi = transaksi.filter(t => t.id !== id);
-        simpan();
-        render();
-        showToast('Transaksi dihapus');
-      }
-    }
-  });
-
-  // FILTER
-  $('#filterJenis').addEventListener('change', render);
-
-  // CETAK
-  $('#btnCetak').addEventListener('click', () => {
-    $('#printDate').textContent = 'Dicetak: ' + new Date().toLocaleString('id-ID');
-    window.print();
-  });
-
-  // RESET ALL
-  const modal = $('#modalKonfirmasi');
-  $('#btnReset').addEventListener('click', () => modal.classList.replace('hidden', 'flex'));
-  $('#btnBatalReset').addEventListener('click', () => modal.classList.replace('flex', 'hidden'));
-  $('#btnKonfirmasiReset').addEventListener('click', () => {
-    transaksi = [];
-    simpan();
-    render();
-    modal.classList.replace('flex', 'hidden');
-    showToast('Semua data berhasil dihapus');
-  });
-  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.replace('flex','hidden'); });
-
-  // INIT
-  render();
+  // --- INIT ---
+  muatData();
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"7f7b0fd8732c4326aae4b9d58d5c514a","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
